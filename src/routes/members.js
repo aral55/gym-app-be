@@ -1,10 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const {getMembers, getMemberById} = require("../controllers/membersController");
+const membersController = require("../controllers/membersController");
 
-//Get all Members
-router.get("/", getMembers);
 
-//Get Member by Id
-router.get("/:id", getMemberById);
+router.get("/", membersController.getMembers);//get all members
+router.get("/:id", membersController.getMemberById); //get member by id
+
+//Creating a new Member
+router.post("/", membersController.createMember)
+
+//Updating a member
+router.put("/:id", membersController.updateMember);
+
+//Delet a member
+router.delete("/:id", membersController.deleteMember);
+
 module.exports = router;
