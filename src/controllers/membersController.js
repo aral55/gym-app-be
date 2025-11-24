@@ -1,3 +1,4 @@
+const db = require("../db");
 const { v4: uuidv4 } = require("uuid");
 
 const members = [
@@ -39,67 +40,56 @@ const randomEmail = (name) => {
 
 //Get all Members
 exports.getMembers = (req, res) => {
-  res.status(200).json(members);
+  db.query("SELECT * FROM members", (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json(results);
+  });
 };
 
 //Get individual member by ID
 exports.getMemberById = (req, res) => {
-  const id = req.params.id;
-  const member = members.find((m) => m.id === id);
-
-  if (!member) {
-    return res.status(404).json({ message: "Member not found!" });
-  }
-
-  res.status(200).json(member);
+  const { id } = req.params;
+  db.query("SELECT * FROM members WHERE id = ?", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ message: "Member not found!" });
+    res.status(200).json(results[0]);
+  });
 };
 
 //Create a new member
 exports.createMember = (req, res) => {
-  const { name, membership, email } = req.body;
+  const { name, membership, email, phone } = req.body;
 
   if (!name || !membership) {
     return res.status(400).json({ message: "Name and Membership required" });
   }
 
-  const newMember = {
-    id: uuidv4(),
-    name,
-    membership,
-    email: email || randomEmail(name),
-    phone: randomPhone(),
-  };
-
-  members.push(newMember);
-  res.status(201).json(newMember);
+  const sql = "INSERT INTO members (name, membership, email, phone) VALUES (?, ?, ?, ?)";
+  db.query(sql, [name, membership, email || `${name.toLowerCase().replace(/ /g, ".")}@example.com`, phone || "+44xxxxxxxxxx"], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ id: result.insertId, name, membership, email, phone });
+  });
 };
 
-//update a member
-exports.updateMember = (req, res) => {
-  const id = req.params.id;
-  const { name, membership, email } = req.body;
-
-  const member = members.find((m) => m.id === id);
-
-  if (!member) {
-    return res.status(404).json({ message: "Member not found" });
-  }
-
-  if (name) member.name = name;
-  if (membership) member.membership = membership;
-  if (email) member.email = email;
-
-  res.status(200).json(member);
-};
-
-//Delete a member
+//Delete a Member
 exports.deleteMember = (req, res) => {
-  const id = req.params.id;
-  const index = members.findIndex((m) => m.id === id);
+  const { id } = req.params;
+  db.query("DELETE FROM members WHERE id=?", [id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Member not found" });
+    res.status(200).json({ message: "Member deleted successfully" });
+  });
+};
 
-  if (index === -1) {
-    return res.status(404).json({ message: "Member not found" });
-  }
-  members.splice(index, 1);
-  res.status(200).json({ message: "Member deleted successfully" });
+//Update a Member
+exports.updateMember = (req, res) => {
+  const { id } = req.params;
+  const { name, membership, email, phone } = req.body;
+
+  const sql = "UPDATE members SET name=?, membership=?, email=?, phone=? WHERE id=?";
+  db.query(sql, [name, membership, email, phone, id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Member not found" });
+    res.status(200).json({ id, name, membership, email, phone });
+  });
 };
