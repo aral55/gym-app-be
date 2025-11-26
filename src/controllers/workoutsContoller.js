@@ -17,3 +17,5 @@ exports.getWorkoutById = (req, res) => {
     res.status(200).json(results[0]);
   });
 };
+
+

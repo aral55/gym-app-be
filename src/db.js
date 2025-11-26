@@ -5,6 +5,7 @@ const db = mysql.createConnection({
   user: "gymapp",
   password: "gym123",
   database: "gym_app",
+  port: 3307,
 });
 
 db.connect((err) => {
@@ -14,7 +15,7 @@ db.connect((err) => {
   }
   console.log("Connected to MySQL database");
 
-  //Fmembers table
+  //members table
   const createMembersTable = `
     CREATE TABLE IF NOT EXISTS members (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,18 +51,19 @@ db.connect((err) => {
 
   //Workout log table
   const createWorkoutLogsTable = `
-  CREATE TABLE IF NOT EXISTS workout_logs (
+CREATE TABLE IF NOT EXISTS workout_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   workout_id INT NOT NULL,
   sets_done VARCHAR(10),
   reps_done VARCHAR(10),
   weight_done VARCHAR(20),
-  date DATE DEFAULT CURRENT DATE,
+  date DATE DEFAULT (CURRENT_DATE()),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN_KEY (user_id) REFERENCES members(id),
-  FOREIGN_KEY (workout_id) REFERENCES workouts(id)
-  )`;
+  FOREIGN KEY (user_id) REFERENCES members(id),
+  FOREIGN KEY (workout_id) REFERENCES workouts(id)
+);
+`;
   db.query(createWorkoutLogsTable, (err) => {
     if (err) console.log("Error creating workout_logs table:", err);
     else console.log("Workout logs table ready");
