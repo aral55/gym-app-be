@@ -58,16 +58,16 @@ exports.getMemberById = (req, res) => {
 
 //Create a new member
 exports.createMember = (req, res) => {
-  const { name, membership, email, phone } = req.body;
+  const { name, membership, email, phone, weight_unit } = req.body;
 
   if (!name || !membership) {
     return res.status(400).json({ message: "Name and Membership required" });
   }
 
-  const sql = "INSERT INTO members (name, membership, email, phone) VALUES (?, ?, ?, ?)";
-  db.query(sql, [name, membership, email || `${name.toLowerCase().replace(/ /g, ".")}@example.com`, phone || "+44xxxxxxxxxx"], (err, result) => {
+  const sql = "INSERT INTO members (name, membership, email, phone, weight_unit) VALUES (?, ?, ?, ?, ?)";
+  db.query(sql, [name, membership, email || `${name.toLowerCase().replace(/ /g, ".")}@example.com`, phone || "+44xxxxxxxxxx", weight_unit || 'kg'], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ id: result.insertId, name, membership, email, phone });
+    res.status(201).json({ id: result.insertId, name, membership, email, phone, weight_unit: weight_unit || 'kg' });
   });
 };
 
@@ -84,12 +84,12 @@ exports.deleteMember = (req, res) => {
 //Update a Member
 exports.updateMember = (req, res) => {
   const { id } = req.params;
-  const { name, membership, email, phone } = req.body;
+  const { name, membership, email, phone, weight_unit } = req.body;
 
-  const sql = "UPDATE members SET name=?, membership=?, email=?, phone=? WHERE id=?";
-  db.query(sql, [name, membership, email, phone, id], (err, result) => {
+  const sql = "UPDATE members SET name=?, membership=?, email=?, phone=?, weight_unit=? WHERE id=?";
+  db.query(sql, [name, membership, email, phone, weight_unit || 'kg', id], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     if (result.affectedRows === 0) return res.status(404).json({ message: "Member not found" });
-    res.status(200).json({ id, name, membership, email, phone });
+    res.status(200).json({ id, name, membership, email, phone, weight_unit: weight_unit || 'kg' });
   });
 };

@@ -23,12 +23,29 @@ db.connect((err) => {
       email VARCHAR(255) NOT NULL,
       phone VARCHAR(20),
       membership VARCHAR(50),
+      weight_unit VARCHAR(5) DEFAULT 'kg',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
   db.query(createMembersTable, (err) => {
     if (err) console.log("Error creating members table:", err);
     else console.log("Members table ready");
+  });
+
+  const addWeightUnitColumn = `
+    ALTER TABLE members
+    ADD COLUMN weight_unit VARCHAR(5) DEFAULT 'kg'
+  `;
+  db.query(addWeightUnitColumn, (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_FIELDNAME') {
+        console.log("weight_unit column already exists");
+      } else {
+        console.log("Error adding weight_unit column:", err);
+      }
+    } else {
+      console.log("weight_unit column ensured in members table");
+    }
   });
 
   //workouts table
@@ -76,31 +93,35 @@ CREATE TABLE IF NOT EXISTS workout_logs (
       email: "feriduncanselen@mail.com",
       phone: "073214568",
       membership: "Gold",
+      weight_unit: "kg",
     },
     {
       name: "Asrin Ilkerli",
       email: "asrin@mail.com",
       phone: "05338418930",
       membership: "Gold",
+      weight_unit: "kg",
     },
     {
       name: "Emily Marchant",
       email: "em.marchant@mail.com",
       phone: "07934597393",
       membership: "Silver",
+      weight_unit: "kg",
     },
     {
       name: "Kyle Baker",
       email: "kb@mail.com",
       phone: "073354671857",
       membership: "Bronze",
+      weight_unit: "kg",
     },
   ];
 
   members.forEach((m) => {
     db.query(
-      "INSERT INTO members (name, email, phone, membership) VALUES (?, ?, ?, ?)",
-      [m.name, m.email, m.phone, m.membership],
+      "INSERT INTO members (name, email, phone, membership, weight_unit) VALUES (?, ?, ?, ?, ?)",
+      [m.name, m.email, m.phone, m.membership, m.weight_unit || 'kg'],
       (err) => {
         if (err) console.log(err);
       }
