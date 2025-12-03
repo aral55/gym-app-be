@@ -162,6 +162,7 @@ exports.getPBs = (req, res) => {
   m.weight_unit
   FROM workout_logs wl
   LEFT JOIN workouts w ON wl.workout_id = w.id
+  LEFT JOIN members m ON wl.user_id = m.id
   WHERE wl.user_id = ?
   GROUP BY wl.workout_id, m.weight_unit 
   `;
