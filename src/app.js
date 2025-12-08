@@ -3,6 +3,7 @@ const cors = require("cors");
 const memberRoutes = require("./routes/members");
 const workoutRoutes = require("./routes/workouts");
 const workoutLogsRoutes = require("./routes/workoutLogsRoutes");
+const progressRoute = require("./routes/progress");
 
 const app = express();
 
@@ -19,5 +20,8 @@ app.use("/workouts", workoutRoutes);
 
 //WorkoutLogs route
 app.use("/workout-logs", workoutLogsRoutes);
+
+//Progress route
+app.use("/progress", progressRoute);
 
 module.exports = app; 

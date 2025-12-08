@@ -105,7 +105,7 @@ exports.getWorkoutHistory = (req, res) => {
     const byDate = {}; //temporary map
 
     rows.forEach((r) => {
-      const dateKey = r.date ? r.date.toISOString().slice(0, 10) : null;
+      const dateKey = r.date ? new Date(r.date).toISOString().slice(0, 10) : null;
       if (!byDate[dateKey]) {
         byDate[dateKey] = { date: dateKey, workouts: {} };
       }
@@ -172,8 +172,10 @@ exports.getPBs = (req, res) => {
 
     //Converter from kg to lbs if needed
     const convertWeight = (value, unit) => {
-      if (!value) return value;
+      if (value == null) return value;
+      if (unit === "kg") return value;
       if (unit === "lbs") return Math.round(value * 2.20462);
+      return value;
     };
 
     const pbData = results.map((r) => {
@@ -181,7 +183,7 @@ exports.getPBs = (req, res) => {
 
       return {
         workout: r.workout_name,
-        heaviest: r.heaviest,
+        heaviest: convertWeight(r.heaviest, unit),
         bestReps: r.best_reps,
         bestVolume: convertWeight(r.best_volume, unit),
         unit,
