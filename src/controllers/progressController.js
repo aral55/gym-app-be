@@ -112,15 +112,14 @@ const copyLastWorkout = (req, res) => {
 };
 
 const saveFromTemplate = (req, res) => {
-  const { date, exercises } = req.body;
+  const { exercises } = req.body;
 
-  if (!Array.isArray(exercises)) return res.status(400).json({ message: "exercises must be an array" });
+  if (!Array.isArray(exercises))
+    return res.status(400).json({ message: "exercises must be an array" });
 
-  const workoutDate = date || new Date().toISOString().slice(0, 10);
-
-  // Insert workout
-  const insertWorkoutSql = `INSERT INTO workouts (date) VALUES (?)`;
-  db.query(insertWorkoutSql, [workoutDate], (workoutErr, workoutResult) => {
+  // Insert workout (only existing fields, no 'date')
+  const insertWorkoutSql = `INSERT INTO workouts (name) VALUES (?)`;
+  db.query(insertWorkoutSql, ["Workout"], (workoutErr, workoutResult) => {
     if (workoutErr) {
       console.error("Insert workout error:", workoutErr);
       return res.status(500).json({ message: "Failed to insert workout", error: workoutErr.message });

@@ -10,6 +10,7 @@ exports.getAllWorkouts = (req, res) => {
 
 //Get individual workout by id
 exports.getWorkoutById = (req, res) => {
+  const { id } = req.params;
   db.query("SELECT * FROM workouts WHERE id = ?", [id], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0)
@@ -17,5 +18,3 @@ exports.getWorkoutById = (req, res) => {
     res.status(200).json(results[0]);
   });
 };
-
-

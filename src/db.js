@@ -2,195 +2,67 @@ const mysql = require("mysql2");
 
 const db = mysql.createConnection({
   host: "localhost",
-  user: "gymapp",
-  password: "gym123",
-  database: "gym_app",
   port: 3307,
+  user: "root",
+  password: "root123",
+  database: "gym_app",
 });
 
 db.connect((err) => {
   if (err) {
-    console.error("Error connecting to MySQL:", err);
+    console.error("Error connecting to database:", err);
     return;
   }
-  console.log("Connected to MySQL database");
-
-  //members table
-  const createMembersTable = `
-    CREATE TABLE IF NOT EXISTS members (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      phone VARCHAR(20),
-      membership VARCHAR(50),
-      weight_unit VARCHAR(5) DEFAULT 'kg',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-  db.query(createMembersTable, (err) => {
-    if (err) console.log("Error creating members table:", err);
-    else console.log("Members table ready");
-  });
-
-  const addWeightUnitColumn = `
-    ALTER TABLE members
-    ADD COLUMN weight_unit VARCHAR(5) DEFAULT 'kg'
-  `;
-  db.query(addWeightUnitColumn, (err) => {
-    if (err) {
-      if (err.code === 'ER_DUP_FIELDNAME') {
-        console.log("weight_unit column already exists");
-      } else {
-        console.log("Error adding weight_unit column:", err);
-      }
-    } else {
-      console.log("weight_unit column ensured in members table");
-    }
-  });
-
-  //workouts table
-  const createWorkoutsTable = `
-    CREATE TABLE IF NOT EXISTS workouts (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description VARCHAR(255),
-      sets VARCHAR(10),
-      reps VARCHAR(10),
-      weight VARCHAR(20),
-      day VARCHAR(20),
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-  db.query(createWorkoutsTable, (err) => {
-    if (err) console.log("Error creating workouts table:", err);
-    else console.log("Workouts table ready");
-  });
-
-  //Workout log table
-  const createWorkoutLogsTable = `
-CREATE TABLE IF NOT EXISTS workout_logs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  workout_id INT NOT NULL,
-  sets_done VARCHAR(10),
-  reps_done VARCHAR(10),
-  weight_done VARCHAR(20),
-  date DATE DEFAULT (CURRENT_DATE()),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES members(id),
-  FOREIGN KEY (workout_id) REFERENCES workouts(id)
-);
-`;
-  db.query(createWorkoutLogsTable, (err) => {
-    if (err) console.log("Error creating workout_logs table:", err);
-    else console.log("Workout logs table ready");
-  });
-
-  // Seed sample members
-  const members = [
-    {
-      name: "Feridun Canselen",
-      email: "feriduncanselen@mail.com",
-      phone: "073214568",
-      membership: "Gold",
-      weight_unit: "kg",
-    },
-    {
-      name: "Asrin Ilkerli",
-      email: "asrin@mail.com",
-      phone: "05338418930",
-      membership: "Gold",
-      weight_unit: "kg",
-    },
-    {
-      name: "Emily Marchant",
-      email: "em.marchant@mail.com",
-      phone: "07934597393",
-      membership: "Silver",
-      weight_unit: "kg",
-    },
-    {
-      name: "Kyle Baker",
-      email: "kb@mail.com",
-      phone: "073354671857",
-      membership: "Bronze",
-      weight_unit: "kg",
-    },
-  ];
-
-  members.forEach((m) => {
-    db.query(
-      "INSERT INTO members (name, email, phone, membership, weight_unit) VALUES (?, ?, ?, ?, ?)",
-      [m.name, m.email, m.phone, m.membership, m.weight_unit || 'kg'],
-      (err) => {
-        if (err) console.log(err);
-      }
-    );
-  });
-
-  // Seed sample workouts
-  const workouts = [
-    {
-      name: "Bench Press",
-      description: "Chest strength",
-      sets: "3",
-      reps: "6-8",
-      weight: "35kg",
-      day: "Monday",
-    },
-    {
-      name: "Tricep Rope Pushdown",
-      description: "Tricep strength",
-      sets: "4",
-      reps: "8-10",
-      weight: "22kg",
-      day: "Monday",
-    },
-    {
-      name: "Lat cable pull down",
-      description: "Lateral Strength",
-      sets: "3",
-      reps: "5-8",
-      weight: "65kg",
-      day: "Wednesday",
-    },
-    {
-      name: "Z Bar Curl",
-      description: "Bicep strength",
-      sets: "3",
-      reps: "8-10",
-      weight: "30kg",
-      day: "Wednesday",
-    },
-    {
-      name: "Squats",
-      description: "Leg strength",
-      sets: "3",
-      reps: "6-8",
-      weight: "50kg",
-      day: "Friday",
-    },
-    {
-      name: "Shoulder Press",
-      description: "Shoulder strength",
-      sets: "4",
-      reps: "6-8",
-      weight: "25kg",
-      day: "Monday",
-    },
-  ];
-
-  workouts.forEach((w) => {
-    db.query(
-      "INSERT INTO workouts (name, description, sets, reps, weight, day) VALUES (?, ?, ?, ?, ?, ?)",
-      [w.name, w.description, w.sets, w.reps, w.weight, w.day],
-      (err) => {
-        if (err) console.log(err);
-      }
-    );
-  });
-
-  console.log("Seeded members and workouts successfully!");
+  console.log("Connected to database");
 });
 
+const createTables = () => {
+  const workoutSql = `
+    CREATE TABLE IF NOT EXISTS workouts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  const exercisesSql = `
+    CREATE TABLE IF NOT EXISTS exercises (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      workout_id INT NOT NULL,
+      name VARCHAR(255),
+      FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
+    );
+  `;
+
+  const setsSql = `
+    CREATE TABLE IF NOT EXISTS sets (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      exercise_id INT NOT NULL,
+      weight DECIMAL(6,2) DEFAULT 0,
+      reps INT DEFAULT 0,
+      FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+    );
+  `;
+
+  const workoutLogsSql = `
+    CREATE TABLE IF NOT EXISTS workout_logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      workout_id INT NOT NULL,
+      sets_done INT DEFAULT 0,
+      reps_done INT DEFAULT 0,
+      weight_done DECIMAL(6,2) DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
+    );
+  `;
+
+  [workoutSql, exercisesSql, setsSql, workoutLogsSql].forEach(sql => {
+    db.query(sql, (err) => {
+      if (err) console.error("Error creating table:", err);
+    });
+  });
+};
+
+db.createTables = createTables;
 module.exports = db;
